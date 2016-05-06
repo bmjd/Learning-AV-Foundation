@@ -65,9 +65,12 @@ extern NSString *const THThumbnailCreatedNotification;
 - (void)captureStillImage;
 
 // Video Recording
-- (void)startRecording;
-- (void)stopRecording;
+//- (void)startRecording;
+//- (void)stopRecording;
 - (BOOL)isRecording;
 - (CMTime)recordedDuration;
-
+- (void)begin;
+- (void)end;
+@property (nonatomic) BOOL endRecording;
+@property (nonatomic, strong) NSMutableArray *URLs;
 @end

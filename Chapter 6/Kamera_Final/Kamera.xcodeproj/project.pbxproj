@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0BFE85261CD9E94700BBC012 /* THPlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0BFE85251CD9E94700BBC012 /* THPlayViewController.m */; };
 		C402A684182AB0EA00CC7CB1 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C402A683182AB0EA00CC7CB1 /* Foundation.framework */; };
 		C402A686182AB0EA00CC7CB1 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C402A685182AB0EA00CC7CB1 /* CoreGraphics.framework */; };
 		C402A688182AB0EA00CC7CB1 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C402A687182AB0EA00CC7CB1 /* UIKit.framework */; };
@@ -35,6 +36,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0BFE85241CD9E94700BBC012 /* THPlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = THPlayViewController.h; sourceTree = "<group>"; };
+		0BFE85251CD9E94700BBC012 /* THPlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = THPlayViewController.m; sourceTree = "<group>"; };
 		C402A680182AB0EA00CC7CB1 /* Kamera.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Kamera.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		C402A683182AB0EA00CC7CB1 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		C402A685182AB0EA00CC7CB1 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -162,6 +165,8 @@
 				C402A699182AB0EA00CC7CB1 /* THViewController.m */,
 				C402A6C1182AB13E00CC7CB1 /* THCameraController.h */,
 				C402A6C2182AB13E00CC7CB1 /* THCameraController.m */,
+				0BFE85241CD9E94700BBC012 /* THPlayViewController.h */,
+				0BFE85251CD9E94700BBC012 /* THPlayViewController.m */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -279,6 +284,7 @@
 			files = (
 				C402A6DB182AB27000CC7CB1 /* THCaptureButton.m in Sources */,
 				C402A6DC182AB27000CC7CB1 /* THCameraModeView.m in Sources */,
+				0BFE85261CD9E94700BBC012 /* THPlayViewController.m in Sources */,
 				C402A6C0182AB10100CC7CB1 /* UIView+THAdditions.m in Sources */,
 				C402A6DA182AB27000CC7CB1 /* THFlashControl.m in Sources */,
 				C402A6C9182AB13E00CC7CB1 /* THAssetsLibrary.m in Sources */,
@@ -393,6 +399,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer: swing chung (343JQP68WZ)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Kamera/Kamera-Prefix.pch";
 				INFOPLIST_FILE = "Kamera/Kamera-Info.plist";
@@ -408,6 +415,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				CODE_SIGN_IDENTITY = "iPhone Developer: swing chung (343JQP68WZ)";
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Kamera/Kamera-Prefix.pch";
 				INFOPLIST_FILE = "Kamera/Kamera-Info.plist";

@@ -29,7 +29,6 @@
 #import "NSFileManager+THAdditions.h"
 
 NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
-
 @interface THCameraController () <AVCaptureFileOutputRecordingDelegate>
 
 @property (strong, nonatomic) AVCaptureSession *captureSession;
@@ -38,21 +37,25 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 @property (strong, nonatomic) AVCaptureStillImageOutput *imageOutput;
 @property (strong, nonatomic) AVCaptureMovieFileOutput *movieOutput;
 @property (strong, nonatomic) NSURL *outputURL;
+@property (strong, nonatomic) NSTimer *timer;
+@property (nonatomic) NSInteger index;
+@property (nonatomic, copy) NSString *dirPath;
+@property (strong, nonatomic) NSTimer *reloadTimer;
 @end
 
 @implementation THCameraController
 
 - (BOOL)setupSession:(NSError **)error {
-
-	self.captureSession = [[AVCaptureSession alloc] init];                  // 1
-    self.captureSession.sessionPreset = AVCaptureSessionPresetHigh;
-
-	// Set up default camera device
-	AVCaptureDevice *videoDevice =                                          // 2
-        [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
-
+    
+    self.captureSession = [[AVCaptureSession alloc] init];                  // 1
+    self.captureSession.sessionPreset = AVCaptureSessionPresetMedium;//AVCaptureSessionPresetHigh
+    
+    // Set up default camera device
+    AVCaptureDevice *videoDevice =                                          // 2
+    [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeVideo];
+    
     AVCaptureDeviceInput *videoInput =                                      // 3
-        [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:error];
+    [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:error];
     if (videoInput) {
         if ([self.captureSession canAddInput:videoInput]) {                 // 4
             [self.captureSession addInput:videoInput];
@@ -61,13 +64,13 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
     } else {
         return NO;
     }
-
+    
     // Setup default microphone
     AVCaptureDevice *audioDevice =                                          // 5
-        [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
-
+    [AVCaptureDevice defaultDeviceWithMediaType:AVMediaTypeAudio];
+    
     AVCaptureDeviceInput *audioInput =                                      // 6
-        [AVCaptureDeviceInput deviceInputWithDevice:audioDevice error:error];
+    [AVCaptureDeviceInput deviceInputWithDevice:audioDevice error:error];
     if (audioInput) {
         if ([self.captureSession canAddInput:audioInput]) {                 // 7
             [self.captureSession addInput:audioInput];
@@ -75,55 +78,55 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
     } else {
         return NO;
     }
-
-	// Setup the still image output
+    
+    // Setup the still image output
     self.imageOutput = [[AVCaptureStillImageOutput alloc] init];            // 8
     self.imageOutput.outputSettings = @{AVVideoCodecKey : AVVideoCodecJPEG};
-
-	if ([self.captureSession canAddOutput:self.imageOutput]) {
-		[self.captureSession addOutput:self.imageOutput];
-	}
-
+    
+    if ([self.captureSession canAddOutput:self.imageOutput]) {
+        [self.captureSession addOutput:self.imageOutput];
+    }
+    
     // Setup movie file output
     self.movieOutput = [[AVCaptureMovieFileOutput alloc] init];             // 9
-
+    
     if ([self.captureSession canAddOutput:self.movieOutput]) {
         [self.captureSession addOutput:self.movieOutput];
     }
-
+    
     return YES;
 }
 
 - (void)startSession {
-	if (![self.captureSession isRunning]) {                                 // 1
-		dispatch_async([self globalQueue], ^{
-			[self.captureSession startRunning];
-		});
-	}
+    if (![self.captureSession isRunning]) {                                 // 1
+        dispatch_async([self globalQueue], ^{
+            [self.captureSession startRunning];
+        });
+    }
 }
 
 - (void)stopSession {
-	if ([self.captureSession isRunning]) {                                  // 2
-		dispatch_async([self globalQueue], ^{
-			[self.captureSession stopRunning];
-		});
-	}
+    if ([self.captureSession isRunning]) {                                  // 2
+        dispatch_async([self globalQueue], ^{
+            [self.captureSession stopRunning];
+        });
+    }
 }
 
 - (dispatch_queue_t)globalQueue {
-	return dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
+    return dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0);
 }
 
 #pragma mark - Device Configuration
 
 - (AVCaptureDevice *)cameraWithPosition:(AVCaptureDevicePosition)position { // 1
-	NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
-	for (AVCaptureDevice *device in devices) {                              // 2
-		if (device.position == position) {
-			return device;
-		}
-	}
-	return nil;
+    NSArray *devices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
+    for (AVCaptureDevice *device in devices) {                              // 2
+        if (device.position == position) {
+            return device;
+        }
+    }
+    return nil;
 }
 
 - (AVCaptureDevice *)activeCamera {                                         // 3
@@ -151,36 +154,36 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 }
 
 - (BOOL)switchCameras {
-
+    
     if (![self canSwitchCameras]) {                                         // 1
         return NO;
     }
-
+    
     NSError *error;
     AVCaptureDevice *videoDevice = [self inactiveCamera];                   // 2
-
+    
     AVCaptureDeviceInput *videoInput =
     [AVCaptureDeviceInput deviceInputWithDevice:videoDevice error:&error];
-
+    
     if (videoInput) {
         [self.captureSession beginConfiguration];                           // 3
-
+        
         [self.captureSession removeInput:self.activeVideoInput];            // 4
-
+        
         if ([self.captureSession canAddInput:videoInput]) {                 // 5
             [self.captureSession addInput:videoInput];
             self.activeVideoInput = videoInput;
         } else {
             [self.captureSession addInput:self.activeVideoInput];
         }
-
+        
         [self.captureSession commitConfiguration];                          // 6
-
+        
     } else {
         [self.delegate deviceConfigurationFailedWithError:error];           // 7
         return NO;
     }
-
+    
     return YES;
 }
 
@@ -196,12 +199,12 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 }
 
 - (void)setFlashMode:(AVCaptureFlashMode)flashMode {
-
+    
     AVCaptureDevice *device = [self activeCamera];
-
+    
     if (device.flashMode != flashMode &&
         [device isFlashModeSupported:flashMode]) {
-
+        
         NSError *error;
         if ([device lockForConfiguration:&error]) {
             device.flashMode = flashMode;
@@ -221,12 +224,12 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 }
 
 - (void)setTorchMode:(AVCaptureTorchMode)torchMode {
-
+    
     AVCaptureDevice *device = [self activeCamera];
-
+    
     if (device.torchMode != torchMode &&
         [device isTorchModeSupported:torchMode]) {
-
+        
         NSError *error;
         if ([device lockForConfiguration:&error]) {
             device.torchMode = torchMode;
@@ -244,12 +247,12 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 }
 
 - (void)focusAtPoint:(CGPoint)point {                                       // 2
-
+    
     AVCaptureDevice *device = [self activeCamera];
-
+    
     if (device.isFocusPointOfInterestSupported &&                           // 3
         [device isFocusModeSupported:AVCaptureFocusModeAutoFocus]) {
-
+        
         NSError *error;
         if ([device lockForConfiguration:&error]) {                         // 4
             device.focusPointOfInterest = point;
@@ -271,28 +274,28 @@ NSString *const THThumbnailCreatedNotification = @"THThumbnailCreated";
 static const NSString *THCameraAdjustingExposureContext;
 
 - (void)exposeAtPoint:(CGPoint)point {
-
+    
     AVCaptureDevice *device = [self activeCamera];
-
+    
     AVCaptureExposureMode exposureMode =
     AVCaptureExposureModeContinuousAutoExposure;
-
+    
     if (device.isExposurePointOfInterestSupported &&                        // 2
         [device isExposureModeSupported:exposureMode]) {
-
+        
         NSError *error;
         if ([device lockForConfiguration:&error]) {                         // 3
-
+            
             device.exposurePointOfInterest = point;
             device.exposureMode = exposureMode;
-
+            
             if ([device isExposureModeSupported:AVCaptureExposureModeLocked]) {
                 [device addObserver:self                                    // 4
                          forKeyPath:@"adjustingExposure"
                             options:NSKeyValueObservingOptionNew
                             context:&THCameraAdjustingExposureContext];
             }
-
+            
             [device unlockForConfiguration];
         } else {
             [self.delegate deviceConfigurationFailedWithError:error];
@@ -304,18 +307,18 @@ static const NSString *THCameraAdjustingExposureContext;
                       ofObject:(id)object
                         change:(NSDictionary *)change
                        context:(void *)context {
-
+    
     if (context == &THCameraAdjustingExposureContext) {                     // 5
-
+        
         AVCaptureDevice *device = (AVCaptureDevice *)object;
-
+        
         if (!device.isAdjustingExposure &&                                  // 6
             [device isExposureModeSupported:AVCaptureExposureModeLocked]) {
-
+            
             [object removeObserver:self                                     // 7
                         forKeyPath:@"adjustingExposure"
                            context:&THCameraAdjustingExposureContext];
-
+            
             dispatch_async(dispatch_get_main_queue(), ^{                    // 8
                 NSError *error;
                 if ([device lockForConfiguration:&error]) {
@@ -326,7 +329,7 @@ static const NSString *THCameraAdjustingExposureContext;
                 }
             });
         }
-
+        
     } else {
         [super observeValueForKeyPath:keyPath
                              ofObject:object
@@ -336,30 +339,30 @@ static const NSString *THCameraAdjustingExposureContext;
 }
 
 - (void)resetFocusAndExposureModes {
-
+    
     AVCaptureDevice *device = [self activeCamera];
-
+    
     AVCaptureExposureMode exposureMode =
     AVCaptureExposureModeContinuousAutoExposure;
-
+    
     AVCaptureFocusMode focusMode = AVCaptureFocusModeContinuousAutoFocus;
-
+    
     BOOL canResetFocus = [device isFocusPointOfInterestSupported] &&        // 1
     [device isFocusModeSupported:focusMode];
-
+    
     BOOL canResetExposure = [device isExposurePointOfInterestSupported] &&  // 2
     [device isExposureModeSupported:exposureMode];
-
+    
     CGPoint centerPoint = CGPointMake(0.5f, 0.5f);                          // 3
-
+    
     NSError *error;
     if ([device lockForConfiguration:&error]) {
-
+        
         if (canResetFocus) {                                                // 4
             device.focusMode = focusMode;
             device.focusPointOfInterest = centerPoint;
         }
-
+        
         if (canResetExposure) {                                             // 5
             device.exposureMode = exposureMode;
             device.exposurePointOfInterest = centerPoint;
@@ -376,24 +379,24 @@ static const NSString *THCameraAdjustingExposureContext;
 #pragma mark - Image Capture Methods
 
 - (void)captureStillImage {
-
-    AVCaptureConnection *connection =                                   
-        [self.imageOutput connectionWithMediaType:AVMediaTypeVideo];
-
-    if (connection.isVideoOrientationSupported) {                       
+    
+    AVCaptureConnection *connection =
+    [self.imageOutput connectionWithMediaType:AVMediaTypeVideo];
+    
+    if (connection.isVideoOrientationSupported) {
         connection.videoOrientation = [self currentVideoOrientation];
     }
-
+    
     id handler = ^(CMSampleBufferRef sampleBuffer, NSError *error) {
         if (sampleBuffer != NULL) {
-
+            
             NSData *imageData =
-                [AVCaptureStillImageOutput
-                    jpegStillImageNSDataRepresentation:sampleBuffer];
-
+            [AVCaptureStillImageOutput
+             jpegStillImageNSDataRepresentation:sampleBuffer];
+            
             UIImage *image = [[UIImage alloc] initWithData:imageData];
             [self writeImageToAssetsLibrary:image];                         // 1
-
+            
         } else {
             NSLog(@"NULL sampleBuffer: %@", [error localizedDescription]);
         }
@@ -404,9 +407,9 @@ static const NSString *THCameraAdjustingExposureContext;
 }
 
 - (void)writeImageToAssetsLibrary:(UIImage *)image {
-
+    
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];              // 2
-
+    
     [library writeImageToSavedPhotosAlbum:image.CGImage                     // 3
                               orientation:(NSInteger)image.imageOrientation // 4
                           completionBlock:^(NSURL *assetURL, NSError *error) {
@@ -427,33 +430,90 @@ static const NSString *THCameraAdjustingExposureContext;
 }
 
 #pragma mark - Video Capture Methods
+- (void)begin {
+    self.index = 0;
+    self.URLs = @[].mutableCopy;
+    NSFileManager *fileManager = [NSFileManager defaultManager];
+    self.dirPath =
+    [fileManager temporaryDirectoryWithTemplateString:@"kamera.XXXXXX"];
+    
+    [self startTimer];
+    [self start];
+}
+- (void)startTimer {
+    [self.timer invalidate];
+    self.timer = [NSTimer timerWithTimeInterval:30
+                                         target:self
+                                       selector:@selector(stop)
+                                       userInfo:nil
+                                        repeats:YES];
+    [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
+    
+    [self.reloadTimer invalidate];
+    self.reloadTimer = [NSTimer timerWithTimeInterval:.6
+                                         target:self
+                                       selector:@selector(start)
+                                       userInfo:nil
+                                        repeats:YES];
+    [[NSRunLoop mainRunLoop] addTimer:self.reloadTimer forMode:NSRunLoopCommonModes];
+    
+    [self addObserver:self forKeyPath:@"self.movieOutput.isRecording" options:(NSKeyValueObservingOptionNew) context:NULL];
+}
+
+
+
+- (void)stop {
+
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self stopRecording];
+    });
+//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+//        [self startRecording];
+//    });
+}
+- (void)start {
+    dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        [self startRecording];
+    });
+}
+- (void)end {
+    [self stopTimer];
+    [self stopRecording];
+    self.index = 0;
+
+}
+- (void)stopTimer {
+    [self.timer invalidate];
+    self.timer = nil;
+    [self.reloadTimer invalidate];
+    self.reloadTimer = nil;
+}
 
 - (BOOL)isRecording {                                                       // 1
     return self.movieOutput.isRecording;
 }
 
 - (void)startRecording {
-
     if (![self isRecording]) {
-
-		AVCaptureConnection *videoConnection =                              // 2
-            [self.movieOutput connectionWithMediaType:AVMediaTypeVideo];
-
-		if ([videoConnection isVideoOrientationSupported]) {                // 3
-			videoConnection.videoOrientation = self.currentVideoOrientation;
-		}
-
-		if ([videoConnection isVideoStabilizationSupported]) {              // 4
+        _index++;
+        AVCaptureConnection *videoConnection =                              // 2
+        [self.movieOutput connectionWithMediaType:AVMediaTypeVideo];
+        
+        if ([videoConnection isVideoOrientationSupported]) {                // 3
+            videoConnection.videoOrientation = self.currentVideoOrientation;
+        }
+        
+        if ([videoConnection isVideoStabilizationSupported]) {              // 4
             
             if ([[[UIDevice currentDevice] systemVersion] floatValue] < 8.0) {
                 videoConnection.enablesVideoStabilizationWhenAvailable = YES;
             } else {
                 videoConnection.preferredVideoStabilizationMode = AVCaptureVideoStabilizationModeAuto;
             }
-		}
-
+        }
+        
         AVCaptureDevice *device = [self activeCamera];
-
+        
         if (device.isSmoothAutoFocusSupported) {                            // 5
             NSError *error;
             if ([device lockForConfiguration:&error]) {
@@ -463,30 +523,25 @@ static const NSString *THCameraAdjustingExposureContext;
                 [self.delegate deviceConfigurationFailedWithError:error];
             }
         }
-
+        
         self.outputURL = [self uniqueURL];                                  // 6
-		[self.movieOutput startRecordingToOutputFileURL:self.outputURL      // 8
+        [self.movieOutput startRecordingToOutputFileURL:self.outputURL      // 8
                                       recordingDelegate:self];
-
     }
+
 }
 
 - (CMTime)recordedDuration {
     return self.movieOutput.recordedDuration;
 }
 
-- (NSURL *)uniqueURL {                                                      // 7
-
-    NSFileManager *fileManager = [NSFileManager defaultManager];
-    NSString *dirPath =
-        [fileManager temporaryDirectoryWithTemplateString:@"kamera.XXXXXX"];
-
-    if (dirPath) {
+- (NSURL *)uniqueURL {
+    if (self.dirPath) {
+        NSString *indexString = [NSString stringWithFormat:@"kamera_movie_%@.mp4",@(self.index)];
         NSString *filePath =
-            [dirPath stringByAppendingPathComponent:@"kamera_movie.mov"];
+        [self.dirPath stringByAppendingPathComponent:indexString];
         return [NSURL fileURLWithPath:filePath];
     }
-
     return nil;
 }
 
@@ -502,22 +557,28 @@ static const NSString *THCameraAdjustingExposureContext;
 didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
       fromConnections:(NSArray *)connections
                 error:(NSError *)error {
-	if (error) {                                                            // 1
+    NSLog(@"%@", outputFileURL);
+    if (error) {                                                            // 1
         [self.delegate mediaCaptureFailedWithError:error];
-	} else {
-        [self writeVideoToAssetsLibrary:[self.outputURL copy]];
-	}
+    } else {
+        NSURL *url = [self.outputURL copy];
+        if (url) {
+            NSLog(@"%@", @(captureOutput.recordedFileSize));
+            [self writeVideoToAssetsLibrary:[self.outputURL copy]];
+            [self.URLs addObject:[self.outputURL copy]];
+        }
+    }
     self.outputURL = nil;
 }
 
 - (void)writeVideoToAssetsLibrary:(NSURL *)videoURL {
-
+    
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];              // 2
-
+    
     if ([library videoAtPathIsCompatibleWithSavedPhotosAlbum:videoURL]) {   // 3
-
+        
         ALAssetsLibraryWriteVideoCompletionBlock completionBlock;
-
+        
         completionBlock = ^(NSURL *assetURL, NSError *error){               // 4
             if (error) {
                 [self.delegate assetLibraryWriteFailedWithError:error];
@@ -525,29 +586,29 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
                 [self generateThumbnailForVideoAtURL:videoURL];
             }
         };
-
+        
         [library writeVideoAtPathToSavedPhotosAlbum:videoURL                // 8
                                     completionBlock:completionBlock];
     }
 }
 
 - (void)generateThumbnailForVideoAtURL:(NSURL *)videoURL {
-
+    
     dispatch_async([self globalQueue], ^{
-
+        
         AVAsset *asset = [AVAsset assetWithURL:videoURL];
-
+        
         AVAssetImageGenerator *imageGenerator =                             // 5
-            [AVAssetImageGenerator assetImageGeneratorWithAsset:asset];
+        [AVAssetImageGenerator assetImageGeneratorWithAsset:asset];
         imageGenerator.maximumSize = CGSizeMake(100.0f, 0.0f);
         imageGenerator.appliesPreferredTrackTransform = YES;
-
+        
         CGImageRef imageRef = [imageGenerator copyCGImageAtTime:kCMTimeZero // 6
                                                      actualTime:NULL
                                                           error:nil];
         UIImage *image = [UIImage imageWithCGImage:imageRef];
         CGImageRelease(imageRef);
-
+        
         dispatch_async(dispatch_get_main_queue(), ^{                        // 7
             [self postThumbnailNotifification:image];
         });
@@ -557,9 +618,9 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
 #pragma mark - Recoding Destination URL
 
 - (AVCaptureVideoOrientation)currentVideoOrientation {
-
+    
     AVCaptureVideoOrientation orientation;
-
+    
     switch ([UIDevice currentDevice].orientation) {                         // 3
         case UIDeviceOrientationPortrait:
             orientation = AVCaptureVideoOrientationPortrait;
@@ -574,7 +635,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
             orientation = AVCaptureVideoOrientationLandscapeRight;
             break;
     }
-
+    
     return orientation;
 }
 

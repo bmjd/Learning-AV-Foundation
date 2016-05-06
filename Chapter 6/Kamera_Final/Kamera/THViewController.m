@@ -32,6 +32,7 @@
 #import "THOverlayView.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "NSTimer+Additions.h"
+#import "THPlayViewController.h"
 
 @interface THViewController () <THPreviewViewDelegate>
 @property (nonatomic) THCameraMode cameraMode;
@@ -40,6 +41,7 @@
 @property (weak, nonatomic) IBOutlet THPreviewView *previewView;
 @property (weak, nonatomic) IBOutlet THOverlayView *overlayView;
 @property (weak, nonatomic) IBOutlet UIButton *thumbnailButton;
+@property (nonatomic) BOOL isRecording;
 
 @end
 
@@ -123,14 +125,22 @@
     if (self.cameraMode == THCameraModePhoto) {
         [self.cameraController captureStillImage];
     } else {
-        if (!self.cameraController.isRecording) {
-            dispatch_async(dispatch_queue_create("com.tapharmonic.kamera", NULL), ^{
-                [self.cameraController startRecording];
+        if (!self.isRecording) {
+            dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                [self.cameraController begin];
                 [self startTimer];
+                self.isRecording = YES;
             });
         } else {
-            [self.cameraController stopRecording];
+            [self.cameraController end];
             [self stopTimer];
+            self.isRecording = NO;
+            NSArray *URLs = self.cameraController.URLs.copy;
+            THPlayViewController *vc = [[THPlayViewController alloc] init];
+            vc.URLs = URLs;
+            [self presentViewController:vc animated:YES completion:^{
+                
+            }];
         }
         sender.selected = !sender.selected;
     }

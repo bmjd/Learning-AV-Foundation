@@ -27,10 +27,12 @@
 
 extern NSString *const THThumbnailCreatedNotification;
 
-@protocol THCameraControllerDelegate <NSObject>                             // 1
+@protocol THCameraControllerDelegate <NSObject>// 1
+@optional
 - (void)deviceConfigurationFailedWithError:(NSError *)error;
 - (void)mediaCaptureFailedWithError:(NSError *)error;
 - (void)assetLibraryWriteFailedWithError:(NSError *)error;
+- (void)videosDidFinishWriteUrls:(NSArray*)urls;
 @end
 
 @interface THCameraController : NSObject

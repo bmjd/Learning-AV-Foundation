@@ -442,40 +442,42 @@ static const NSString *THCameraAdjustingExposureContext;
 }
 - (void)startTimer {
     [self.timer invalidate];
-    self.timer = [NSTimer timerWithTimeInterval:30
+    self.timer = [NSTimer timerWithTimeInterval:5
                                          target:self
                                        selector:@selector(stop)
                                        userInfo:nil
-                                        repeats:YES];
-    [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
-    
-    [self.reloadTimer invalidate];
-    self.reloadTimer = [NSTimer timerWithTimeInterval:.6
-                                         target:self
-                                       selector:@selector(start)
-                                       userInfo:nil
-                                        repeats:YES];
-    [[NSRunLoop mainRunLoop] addTimer:self.reloadTimer forMode:NSRunLoopCommonModes];
-    
-    [self addObserver:self forKeyPath:@"self.movieOutput.isRecording" options:(NSKeyValueObservingOptionNew) context:NULL];
+                                        repeats:NO];
+    [[NSRunLoop mainRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];    
 }
-
+- (void)startReloadTimer {
+    [self.reloadTimer invalidate];
+    self.reloadTimer = [NSTimer timerWithTimeInterval:.05
+                                               target:self
+                                             selector:@selector(start)
+                                             userInfo:nil
+                                              repeats:YES];
+    [[NSRunLoop mainRunLoop] addTimer:self.reloadTimer forMode:NSRunLoopCommonModes];
+}
 
 
 - (void)stop {
-
     dispatch_async(dispatch_get_global_queue(0, 0), ^{
+        NSLog(@"---stop----");
         [self stopRecording];
+        [self startReloadTimer];
     });
-//    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-//        [self startRecording];
-//    });
 }
 - (void)start {
-    dispatch_async(dispatch_get_global_queue(0, 0), ^{
-        [self startRecording];
-    });
+    if (!self.isRecording) {
+        dispatch_async(dispatch_get_global_queue(0, 0), ^{
+            NSLog(@"---start----");
+            [self startRecording];
+            [self startTimer];
+            [self.reloadTimer invalidate];
+        });
+    }
 }
+
 - (void)end {
     [self stopTimer];
     [self stopRecording];
@@ -564,13 +566,19 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
         NSURL *url = [self.outputURL copy];
         if (url) {
             NSLog(@"%@", @(captureOutput.recordedFileSize));
-            [self writeVideoToAssetsLibrary:[self.outputURL copy]];
+//            [self writeVideoToAssetsLibrary:[self.outputURL copy]];
             [self.URLs addObject:[self.outputURL copy]];
+            [self generateThumbnailForVideoAtURL:outputFileURL];
+            if (_endRecording) {
+                if ([self.delegate respondsToSelector:@selector(videosDidFinishWriteUrls:)]) {
+                    [self.delegate videosDidFinishWriteUrls:self.URLs];
+                }
+            }
         }
     }
     self.outputURL = nil;
 }
-
+/*
 - (void)writeVideoToAssetsLibrary:(NSURL *)videoURL {
     
     ALAssetsLibrary *library = [[ALAssetsLibrary alloc] init];              // 2
@@ -584,6 +592,11 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
                 [self.delegate assetLibraryWriteFailedWithError:error];
             } else {
                 [self generateThumbnailForVideoAtURL:videoURL];
+                if (_endRecording) {
+                    if ([self.delegate respondsToSelector:@selector(videosDidFinishWriteUrls:)]) {
+                        [self.delegate videosDidFinishWriteUrls:self.URLs];
+                    }
+                }
             }
         };
         
@@ -591,7 +604,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
                                     completionBlock:completionBlock];
     }
 }
-
+*/
 - (void)generateThumbnailForVideoAtURL:(NSURL *)videoURL {
     
     dispatch_async([self globalQueue], ^{

@@ -34,7 +34,7 @@
 #import "NSTimer+Additions.h"
 #import "THPlayViewController.h"
 
-@interface THViewController () <THPreviewViewDelegate>
+@interface THViewController () <THPreviewViewDelegate,THCameraControllerDelegate>
 @property (nonatomic) THCameraMode cameraMode;
 @property (strong, nonatomic) NSTimer *timer;
 @property (strong, nonatomic) THCameraController *cameraController;
@@ -65,6 +65,7 @@
                                                object:nil];
     self.cameraMode = THCameraModeVideo;
     self.cameraController = [[THCameraController alloc] init];
+    self.cameraController.delegate = self;
     
     NSError *error;
     if ([self.cameraController setupSession:&error]) {
@@ -127,20 +128,15 @@
     } else {
         if (!self.isRecording) {
             dispatch_async(dispatch_get_global_queue(0, 0), ^{
+                self.isRecording = YES;
                 [self.cameraController begin];
                 [self startTimer];
-                self.isRecording = YES;
             });
         } else {
+            self.isRecording = NO;
+            self.cameraController.endRecording = YES;
             [self.cameraController end];
             [self stopTimer];
-            self.isRecording = NO;
-            NSArray *URLs = self.cameraController.URLs.copy;
-            THPlayViewController *vc = [[THPlayViewController alloc] init];
-            vc.URLs = URLs;
-            [self presentViewController:vc animated:YES completion:^{
-                
-            }];
         }
         sender.selected = !sender.selected;
     }
@@ -189,5 +185,12 @@
 - (void)tappedToResetFocusAndExposure {
     [self.cameraController resetFocusAndExposureModes];
 }
-
+- (void)videosDidFinishWriteUrls:(NSArray*)urls;
+{
+    THPlayViewController *vc = [[THPlayViewController alloc] init];
+    vc.URLs = urls;
+    [self presentViewController:vc animated:YES completion:^{
+        
+    }];
+}
 @end

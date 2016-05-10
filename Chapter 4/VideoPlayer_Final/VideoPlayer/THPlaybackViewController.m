@@ -67,7 +67,8 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     NSURL *url = [segue.identifier isEqualToString:LOCAL_SEGUE] ? self.localURL : self.streamingURL;
     THPlayerViewController *controller = [segue destinationViewController];
-    controller.assetURL = url;
+    controller.assetURLs = @[url, url, url];
+    
 }
 
 - (BOOL)alertError {

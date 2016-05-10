@@ -25,6 +25,6 @@
 
 @interface THPlayerViewController : UIViewController
 
-@property (strong, nonatomic) NSURL *assetURL;
-
+//@property (strong, nonatomic) NSURL *assetURL;
+@property (strong, nonatomic) NSArray *assetURLs;
 @end

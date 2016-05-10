@@ -46,7 +46,7 @@ static const NSString *PlayerItemStatusContext;
 
 @property (strong, nonatomic) AVAsset *asset;
 @property (strong, nonatomic) AVPlayerItem *playerItem;
-@property (strong, nonatomic) AVPlayer *player;
+@property (strong, nonatomic) AVQueuePlayer *player;
 @property (strong, nonatomic) THPlayerView *playerView;
 
 @property (weak, nonatomic) id <THTransport> transport;
@@ -57,21 +57,32 @@ static const NSString *PlayerItemStatusContext;
 
 @property (strong, nonatomic) AVAssetImageGenerator *imageGenerator;
 
+@property (strong, nonatomic) NSMutableArray *assetURLs;
+@property (nonatomic) NSTimeInterval queueTime;
 @end
 
 @implementation THPlayerController
 
 #pragma mark - Setup
 
-- (id)initWithURL:(NSURL *)assetURL {
+//- (id)initWithURL:(NSURL *)assetURL {
+//    self = [super init];
+//    if (self) {
+//        _asset = [AVAsset assetWithURL:assetURL];                           // 1
+//        [self prepareToPlay];
+//    }
+//    return self;
+//}
+- (id)initWithURLs:(NSArray *)assetURLs andQueueTime:(NSTimeInterval)time;
+{
     self = [super init];
     if (self) {
-        _asset = [AVAsset assetWithURL:assetURL];                           // 1
+        _assetURLs = [assetURLs mutableCopy];
+        _queueTime = time;
         [self prepareToPlay];
     }
     return self;
 }
-
 - (void)prepareToPlay {
     NSArray *keys = @[
         @"tracks",
@@ -79,15 +90,19 @@ static const NSString *PlayerItemStatusContext;
         @"commonMetadata",
         @"availableMediaCharacteristicsWithMediaSelectionOptions"
     ];
-    self.playerItem = [AVPlayerItem playerItemWithAsset:self.asset          // 2
-                           automaticallyLoadedAssetKeys:keys];
 
-    [self.playerItem addObserver:self                                       // 3
-                      forKeyPath:STATUS_KEYPATH
-                         options:0
-                         context:&PlayerItemStatusContext];
+    NSMutableArray *playerItems = @[].mutableCopy;
+    for (NSURL *aURL in self.assetURLs) {
+        AVAsset *asset = [AVAsset assetWithURL:aURL];
+        AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset automaticallyLoadedAssetKeys:keys];
+        [playerItems addObject:playerItem];
+        [playerItem addObserver:self                                       // 3
+                          forKeyPath:STATUS_KEYPATH
+                             options:0
+                             context:&PlayerItemStatusContext];
+    }
 
-    self.player = [AVPlayer playerWithPlayerItem:self.playerItem];          // 4
+    self.player = [AVQueuePlayer queuePlayerWithItems:playerItems];
 
     self.playerView = [[THPlayerView alloc] initWithPlayer:self.player];    // 5
     self.transport = self.playerView.transport;
@@ -103,7 +118,7 @@ static const NSString *PlayerItemStatusContext;
         
         dispatch_async(dispatch_get_main_queue(), ^{                        // 1
             
-            [self.playerItem removeObserver:self forKeyPath:STATUS_KEYPATH];
+//            [self.playerItem removeObserver:self forKeyPath:STATUS_KEYPATH];
             
             if (self.playerItem.status == AVPlayerItemStatusReadyToPlay) {
                 

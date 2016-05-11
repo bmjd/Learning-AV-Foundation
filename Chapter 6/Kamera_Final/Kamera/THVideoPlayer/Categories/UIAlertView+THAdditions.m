@@ -23,12 +23,16 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import "UIAlertView+THAdditions.h"
 
-@interface THCameraView : UIView
+@implementation UIAlertView (THAdditions)
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
++ (void)showAlertWithTitle:(NSString *)title message:(NSString *)message {
+    UIAlertView *alertView = [[UIAlertView alloc] initWithTitle:title
+                                                        message:message
+                                                       delegate:nil cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil, nil];
+    [alertView show];
+}
 
 @end

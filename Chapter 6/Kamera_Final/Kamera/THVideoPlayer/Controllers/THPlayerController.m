@@ -98,11 +98,18 @@ static const NSString *PlayerItemStatusContext;
     for (NSURL *aURL in self.assetURLs) {
         AVAsset *asset = [AVAsset assetWithURL:aURL];
         AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset automaticallyLoadedAssetKeys:keys];
-        [self.playerItems addObject:playerItem];
+//        AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset];
+        NSDictionary *opts = [NSDictionary dictionaryWithObject:[NSNumber numberWithBool:NO]
+                                                         forKey:AVURLAssetPreferPreciseDurationAndTimingKey];
+        AVURLAsset *urlAsset = [AVURLAsset URLAssetWithURL:aURL options:opts];  // 初始化视频媒体文件
+        CMTimeShow(urlAsset.duration);
+        playerItem = [AVPlayerItem playerItemWithAsset:urlAsset];
         [playerItem addObserver:self                                       // 3
                           forKeyPath:STATUS_KEYPATH
                              options:0
                              context:&PlayerItemStatusContext];
+        [self.playerItems addObject:playerItem];
+
     }
     self.player = [AVQueuePlayer queuePlayerWithItems:self.playerItems];
     self.playerItem = self.playerItems.firstObject;

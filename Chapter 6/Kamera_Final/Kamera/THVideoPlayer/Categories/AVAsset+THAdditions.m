@@ -23,12 +23,26 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import "AVAsset+THAdditions.h"
 
-@interface THCameraView : UIView
+@implementation AVAsset (THAdditions)
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+- (NSString *)title {
+
+    AVKeyValueStatus status =
+        [self statusOfValueForKey:@"commonMetadata" error:nil];
+    if (status == AVKeyValueStatusLoaded) {
+        NSArray *items =
+            [AVMetadataItem metadataItemsFromArray:self.commonMetadata
+                                           withKey:AVMetadataCommonKeyTitle
+                                          keySpace:AVMetadataKeySpaceCommon];
+        if (items.count > 0) {
+            AVMetadataItem *titleItem = [items firstObject];
+            return (NSString *)titleItem.value;
+        }
+    }
+    
+    return nil;
+}
 
 @end

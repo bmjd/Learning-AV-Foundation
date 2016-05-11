@@ -23,12 +23,4 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
-
-@interface THCameraView : UIView
-
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
-
-@end
+extern NSString * const THThumbnailsGeneratedNotification;

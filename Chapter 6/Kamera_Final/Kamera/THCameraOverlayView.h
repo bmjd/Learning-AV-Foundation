@@ -23,12 +23,15 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import <UIKit/UIKit.h>
+#import "THCameraModeView.h"
+#import "THStatusView.h"
 
-@interface THCameraView : UIView
+@interface THCameraOverlayView : UIView
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+@property (weak, nonatomic) IBOutlet THCameraModeView *modeView;
+@property (weak, nonatomic) IBOutlet THStatusView *statusView;
+
+@property (nonatomic) BOOL flashControlHidden;
 
 @end

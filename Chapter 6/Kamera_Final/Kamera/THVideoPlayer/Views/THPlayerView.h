@@ -23,12 +23,14 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import "THTransport.h"
 
-@interface THCameraView : UIView
+@class AVPlayer;
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+@interface THPlayerView : UIView
+
+- (id)initWithPlayer:(AVPlayer *)player;
+
+@property (nonatomic, readonly) id <THTransport> transport;
 
 @end

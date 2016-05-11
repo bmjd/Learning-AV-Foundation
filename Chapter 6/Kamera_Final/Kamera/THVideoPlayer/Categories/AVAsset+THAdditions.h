@@ -23,12 +23,10 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import <AVFoundation/AVFoundation.h>
 
-@interface THCameraView : UIView
+@interface AVAsset (THAdditions)
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+@property (nonatomic, readonly) NSString *title;
 
 @end

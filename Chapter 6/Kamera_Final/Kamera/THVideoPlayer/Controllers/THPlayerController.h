@@ -23,12 +23,9 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+@interface THPlayerController : NSObject
 
-@interface THCameraView : UIView
-
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+- (id)initWithURLs:(NSArray *)assetURLs andQueueTime:(NSTimeInterval)time;//一组视频。time：该组视频总时长，为0则不合并视频
+@property (strong, nonatomic, readonly) UIView *view;
 
 @end

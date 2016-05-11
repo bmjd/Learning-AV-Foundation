@@ -23,12 +23,25 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import "THPlayerViewController.h"
+#import "THPlayerController.h"
 
-@interface THCameraView : UIView
+@interface THPlayerViewController ()
+@property (strong, nonatomic) THPlayerController *controller;
+@end
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
+@implementation THPlayerViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    self.controller = [[THPlayerController alloc] initWithURLs:self.assetURLs andQueueTime:0];
+    UIView *playerView = self.controller.view;
+    playerView.frame = self.view.frame;
+    [self.view addSubview:playerView];
+}
+
+- (BOOL)prefersStatusBarHidden {
+    return YES;
+}
 
 @end

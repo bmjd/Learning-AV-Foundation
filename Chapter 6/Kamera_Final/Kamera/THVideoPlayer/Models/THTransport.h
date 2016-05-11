@@ -23,15 +23,35 @@
 //  THE SOFTWARE.
 //
 
-#import <UIKit/UIKit.h>
-#import "THCameraModeView.h"
-#import "THStatusView.h"
+#import <AVFoundation/AVFoundation.h>
 
-@interface THOverlayView : UIView
+@protocol THTransportDelegate <NSObject>
 
-@property (weak, nonatomic) IBOutlet THCameraModeView *modeView;
-@property (weak, nonatomic) IBOutlet THStatusView *statusView;
+- (void)play;
+- (void)pause;
+- (void)stop;
 
-@property (nonatomic) BOOL flashControlHidden;
+- (void)scrubbingDidStart;
+- (void)scrubbedToTime:(NSTimeInterval)time;
+- (void)scrubbingDidEnd;
+
+- (void)jumpedToTime:(NSTimeInterval)time;
+
+@optional
+- (void)subtitleSelected:(NSString *)subtitle;
 
 @end
+
+@protocol THTransport <NSObject>
+
+@property (weak, nonatomic) id <THTransportDelegate> delegate;
+
+- (void)setTitle:(NSString *)title;
+- (void)setCurrentTime:(NSTimeInterval)time duration:(NSTimeInterval)duration;
+- (void)setScrubbingTime:(NSTimeInterval)time;
+- (void)playbackComplete;
+- (void)setSubtitles:(NSArray *)subtitles;
+
+@end
+
+

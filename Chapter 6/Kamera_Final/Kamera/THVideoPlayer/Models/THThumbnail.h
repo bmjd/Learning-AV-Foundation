@@ -23,12 +23,13 @@
 //  THE SOFTWARE.
 //
 
-#import "THPreviewView.h"
-#import "THCameraOverlayView.h"
+#import <CoreMedia/CoreMedia.h>
 
-@interface THCameraView : UIView
+@interface THThumbnail : NSObject
 
-@property (weak, nonatomic, readonly) THPreviewView *previewView;
-@property (weak, nonatomic, readonly) THCameraOverlayView *controlsView;
++ (instancetype)thumbnailWithImage:(UIImage *)image time:(CMTime)time;
+
+@property (nonatomic, readonly) CMTime time;
+@property (strong, nonatomic, readonly) UIImage *image;
 
 @end

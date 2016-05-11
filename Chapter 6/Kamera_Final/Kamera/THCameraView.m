@@ -28,7 +28,7 @@
 @interface THCameraView ()
 
 @property (weak, nonatomic) IBOutlet THPreviewView *previewView;
-@property (weak, nonatomic) IBOutlet THOverlayView *controlsView;
+@property (weak, nonatomic) IBOutlet THCameraOverlayView *controlsView;
 
 @end
 

@@ -29,17 +29,17 @@
 #import <AVFoundation/AVFoundation.h>
 #import "THFlashControl.h"
 #import "THCameraModeView.h"
-#import "THOverlayView.h"
+#import "THCameraOverlayView.h"
 #import <MobileCoreServices/MobileCoreServices.h>
 #import "NSTimer+Additions.h"
-#import "THPlayViewController.h"
+#import "THPlayerViewController.h"
 
 @interface THViewController () <THPreviewViewDelegate,THCameraControllerDelegate>
 @property (nonatomic) THCameraMode cameraMode;
 @property (strong, nonatomic) NSTimer *timer;
 @property (strong, nonatomic) THCameraController *cameraController;
 @property (weak, nonatomic) IBOutlet THPreviewView *previewView;
-@property (weak, nonatomic) IBOutlet THOverlayView *overlayView;
+@property (weak, nonatomic) IBOutlet THCameraOverlayView *overlayView;
 @property (weak, nonatomic) IBOutlet UIButton *thumbnailButton;
 @property (nonatomic) BOOL isRecording;
 
@@ -187,8 +187,8 @@
 }
 - (void)videosDidFinishWriteUrls:(NSArray*)urls;
 {
-    THPlayViewController *vc = [[THPlayViewController alloc] init];
-    vc.URLs = urls;
+    THPlayerViewController *vc = [[THPlayerViewController alloc] init];
+    vc.assetURLs = urls;
     [self presentViewController:vc animated:YES completion:^{
         
     }];

@@ -60,7 +60,7 @@ static const NSString *PlayerItemStatusContext;
 @property (strong, nonatomic) NSMutableArray *assetURLs;
 @property (strong, nonatomic) NSMutableArray *playerItems;
 @property (nonatomic) NSInteger playerItemIndex;
-@property (nonatomic) NSTimeInterval queueTime;
+@property (nonatomic) NSTimeInterval queueDuration;
 @end
 
 @implementation THPlayerController
@@ -75,12 +75,11 @@ static const NSString *PlayerItemStatusContext;
 //    }
 //    return self;
 //}
-- (id)initWithURLs:(NSArray *)assetURLs andQueueTime:(NSTimeInterval)time;
+- (id)initWithURLs:(NSArray *)assetURLs;
 {
     self = [super init];
     if (self) {
         _assetURLs = [assetURLs mutableCopy];
-        _queueTime = time;
 //        _asset = [AVAsset assetWithURL:self.assetURLs.firstObject];
         [self prepareToPlay];
     }
@@ -95,6 +94,8 @@ static const NSString *PlayerItemStatusContext;
     ];
 
     self.playerItems = @[].mutableCopy;
+    CMTime duration = kCMTimeZero;
+
     for (NSURL *aURL in self.assetURLs) {
         AVAsset *asset = [AVAsset assetWithURL:aURL];
         AVPlayerItem *playerItem = [AVPlayerItem playerItemWithAsset:asset automaticallyLoadedAssetKeys:keys];
@@ -109,8 +110,10 @@ static const NSString *PlayerItemStatusContext;
                              options:0
                              context:&PlayerItemStatusContext];
         [self.playerItems addObject:playerItem];
-
+        CMTime tmp = playerItem.duration;
+        duration = CMTimeAdd(tmp, duration);
     }
+    self.queueDuration = CMTimeGetSeconds(duration);
     self.player = [AVQueuePlayer queuePlayerWithItems:self.playerItems];
     self.playerItem = self.playerItems.firstObject;
     self.playerItemIndex = 0;
@@ -137,17 +140,11 @@ static const NSString *PlayerItemStatusContext;
                 [self addPlayerItemTimeObserver];
                 [self addItemEndObserverForPlayerItem];
                 
-                CMTime duration = kCMTimeZero;
-                for (AVPlayerItem *playerItem in self.playerItems) {
-                    CMTime tmp = playerItem.duration;
-//                    CMTimeShow(tmp);
-//                    CMTimeShow(duration);
-                    duration = CMTimeAdd(tmp, duration);
-                }
+
                 
                 // Synchronize the time display                             // 3
                 [self.transport setCurrentTime:CMTimeGetSeconds(kCMTimeZero)
-                                      duration:CMTimeGetSeconds(duration)];
+                                      duration:self.queueDuration];
                 
                 // Set the video title.
                 [self.transport setTitle:[self.playerItems[_playerItemIndex] asset].title];                 // 4

@@ -34,7 +34,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.controller = [[THPlayerController alloc] initWithURLs:self.assetURLs andQueueTime:0];
+    self.controller = [[THPlayerController alloc] initWithURLs:self.assetURLs];
     UIView *playerView = self.controller.view;
     playerView.frame = self.view.frame;
     [self.view addSubview:playerView];

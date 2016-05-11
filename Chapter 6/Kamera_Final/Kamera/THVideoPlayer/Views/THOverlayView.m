@@ -227,7 +227,7 @@
     self.timer = nil;
     [self.delegate stop];
     self.filmStripView.hidden = YES;
-//    [self.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
+    [self.window.rootViewController dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)showPopupUI {

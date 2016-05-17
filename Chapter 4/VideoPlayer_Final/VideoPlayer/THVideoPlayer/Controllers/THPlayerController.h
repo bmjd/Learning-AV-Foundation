@@ -25,7 +25,7 @@
 
 @interface THPlayerController : NSObject
 
-- (id)initWithURLs:(NSArray *)assetURLs andQueueTime:(NSTimeInterval)time;//一组视频。time：该组视频总时长，为0则不合并视频
+- (id)initWithURLs:(NSArray *)assetURLs;//一组视频
 @property (strong, nonatomic, readonly) UIView *view;
 
 @end

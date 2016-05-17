@@ -67,8 +67,10 @@
 - (void)prepareForSegue:(UIStoryboardSegue *)segue sender:(id)sender {
     NSURL *url = [segue.identifier isEqualToString:LOCAL_SEGUE] ? self.localURL : self.streamingURL;
     THPlayerViewController *controller = [segue destinationViewController];
-    controller.assetURLs = @[url, url, url];
-    
+    NSURL *url1 = [[NSBundle mainBundle] URLForResource:@"01_nebula" withExtension:@"mp4"];
+
+    controller.assetURLs = @[url, url1];
+
 }
 
 - (BOOL)alertError {
